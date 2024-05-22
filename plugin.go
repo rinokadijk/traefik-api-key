@@ -18,6 +18,7 @@ type Config struct {
 	QueryParam                bool     `json:"queryParam,omitempty"`
 	QueryParamName            string   `json:"queryParamName,omitempty"`
 	PathSegment               bool     `json:"pathSegment,omitempty"`
+	PermissiveMode            bool     `json:"permissiveMode,omitempty"`
 	Keys                      []string `json:"keys,omitempty"`
 	RemoveHeadersOnSuccess    bool     `json:"removeHeadersOnSuccess,omitempty"`
 	InternalForwardHeaderName string   `json:"internalForwardHeaderName,omitempty"`
@@ -38,6 +39,7 @@ func CreateConfig() *Config {
 		QueryParam:                true,
 		QueryParamName:            "token",
 		PathSegment:               true,
+		PermissiveMode:            false,
 		Keys:                      make([]string, 0),
 		RemoveHeadersOnSuccess:    true,
 		InternalForwardHeaderName: "",
@@ -54,6 +56,7 @@ type KeyAuth struct {
 	queryParam                bool
 	queryParamName            string
 	pathSegment               bool
+	permissiveMode            bool
 	keys                      []string
 	removeHeadersOnSuccess    bool
 	internalForwardHeaderName string
@@ -82,6 +85,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		queryParam:                config.QueryParam,
 		queryParamName:            config.QueryParamName,
 		pathSegment:               config.PathSegment,
+		permissiveMode:            config.PermissiveMode,
 		keys:                      config.Keys,
 		removeHeadersOnSuccess:    config.RemoveHeadersOnSuccess,
 		internalForwardHeaderName: config.InternalForwardHeaderName,
@@ -134,6 +138,14 @@ func (ka *KeyAuth) ok(rw http.ResponseWriter, req *http.Request, key string) {
 	ka.next.ServeHTTP(rw, req)
 }
 
+
+func (ka *KeyAuth) permissiveOk(rw http.ResponseWriter, req *http.Request) {
+	// If permissiveMode is enabled, log a warning and return OK as if the correct authentication was provided.
+	os.Stderr.WriteString(fmt.Sprintf("WARN: traefik_api_key_auth: No valid credentials found for URL \"%s\". Allowing request in permissive mode", req.URL))
+	req.RequestURI = req.URL.RequestURI()
+	ka.next.ServeHTTP(rw, req)
+}
+
 func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Check authentication header for valid key
 	if ka.authenticationHeader {
@@ -182,6 +194,12 @@ func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// No further authentication mechanisms to try. Handle permissiveMode if enabled
+	if ka.permissiveMode {
+		ka.permissiveOk(rw, req)
+		return
+	}
+	
 	if ka.internalErrorRoute != "" {
 		req.URL.Path = ka.internalErrorRoute
 		req.URL.RawQuery = ""
