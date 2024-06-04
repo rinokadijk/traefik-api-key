@@ -141,7 +141,7 @@ func (ka *KeyAuth) ok(rw http.ResponseWriter, req *http.Request, key string) {
 
 func (ka *KeyAuth) permissiveOk(rw http.ResponseWriter, req *http.Request) {
 	// If permissiveMode is enabled, log a warning and return OK as if the correct authentication was provided.
-	os.Stderr.WriteString(fmt.Sprintf("WARN: traefik_api_key_auth: No valid credentials found for URL \"%s\". Allowing request in permissive mode", req.URL))
+	os.Stderr.WriteString(fmt.Sprintf("WARN: traefik_api_key_auth: No valid credentials found for URL \"%s\". Allowing request in permissive mode\n", req.URL))
 	req.RequestURI = req.URL.RequestURI()
 	ka.next.ServeHTTP(rw, req)
 }
