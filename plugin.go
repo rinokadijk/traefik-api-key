@@ -96,7 +96,11 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 // contains takes an API key and compares it to the list of valid API keys. The return value notes whether the
 // key is in the valid keys
 // list or not.
-func contains(key string, validKeys []string, exact bool) string {
+func contains(key string, validKeys []string, exact bool, permissive bool) string {
+	if permissive {
+		return key
+	}
+
 	for _, a := range validKeys {
 		if exact {
 			if a == key {
@@ -114,7 +118,7 @@ func contains(key string, validKeys []string, exact bool) string {
 // bearer takes an API key in the `Authorization: Bearer $token` form and compares it to the list of valid keys.
 // The token/key is extracted from the header value. The return value notes whether the key is in the valid keys
 // list or not.
-func bearer(key string, validKeys []string) string {
+func bearer(key string, validKeys []string, permissive bool) string {
 	re, _ := regexp.Compile(`Bearer\s(?P<key>[^$]+)`)
 	matches := re.FindStringSubmatch(key)
 
@@ -126,18 +130,17 @@ func bearer(key string, validKeys []string) string {
 	// If found extract the key and compare it to the list of valid keys
 	keyIndex := re.SubexpIndex("key")
 	extractedKey := matches[keyIndex]
-	return contains(extractedKey, validKeys, true)
+	return contains(extractedKey, validKeys, true, permissive)
 }
 
 func (ka *KeyAuth) ok(rw http.ResponseWriter, req *http.Request, key string) {
 	os.Stdout.WriteString(fmt.Sprintf("INFO: traefik_api_key_auth KEY %s URL %s\n", key, req.URL))
-	if ka.internalForwardHeaderName != "" {
+	if ka.internalForwardHeaderName != "" && key != "" {
 		req.Header.Add(ka.internalForwardHeaderName, key)
 	}
 	req.RequestURI = req.URL.RequestURI()
 	ka.next.ServeHTTP(rw, req)
 }
-
 
 func (ka *KeyAuth) permissiveOk(rw http.ResponseWriter, req *http.Request) {
 	// If permissiveMode is enabled, log a warning and return OK as if the correct authentication was provided.
@@ -149,7 +152,7 @@ func (ka *KeyAuth) permissiveOk(rw http.ResponseWriter, req *http.Request) {
 func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Check authentication header for valid key
 	if ka.authenticationHeader {
-		var matchedKey = contains(req.Header.Get(ka.authenticationHeaderName), ka.keys, true)
+		var matchedKey = contains(req.Header.Get(ka.authenticationHeaderName), ka.keys, true, ka.permissiveMode)
 		if matchedKey != "" {
 			// X-API-KEY header contains a valid key
 			if ka.removeHeadersOnSuccess {
@@ -162,7 +165,7 @@ func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// Check authorization header for valid Bearer
 	if ka.bearerHeader {
-		var matchedKey = bearer(req.Header.Get(ka.bearerHeaderName), ka.keys)
+		var matchedKey = bearer(req.Header.Get(ka.bearerHeaderName), ka.keys, ka.permissiveMode)
 		if matchedKey != "" {
 			// Authorization header contains a valid Bearer token
 			if ka.removeHeadersOnSuccess {
@@ -176,7 +179,7 @@ func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Check query param for valid key
 	if ka.queryParam {
 		var qs = req.URL.Query()
-		var matchedKey = contains(qs.Get(ka.queryParamName), ka.keys, true)
+		var matchedKey = contains(qs.Get(ka.queryParamName), ka.keys, true, ka.permissiveMode)
 		if matchedKey != "" {
 			qs.Del(ka.queryParamName)
 			req.URL.RawQuery = qs.Encode()
@@ -187,7 +190,7 @@ func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// Check URL path for valid key in segment
 	if ka.pathSegment {
-		var matchedKey = contains(req.URL.Path, ka.keys, false)
+		var matchedKey = contains(req.URL.Path, ka.keys, false, ka.permissiveMode)
 		if matchedKey != "" {
 			ka.ok(rw, req, matchedKey)
 			return
@@ -199,7 +202,7 @@ func (ka *KeyAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		ka.permissiveOk(rw, req)
 		return
 	}
-	
+
 	if ka.internalErrorRoute != "" {
 		req.URL.Path = ka.internalErrorRoute
 		req.URL.RawQuery = ""
