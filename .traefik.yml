@@ -1,18 +1,17 @@
 ﻿displayName: API Key Auth
 type: middleware
 
-import: github.com/Septima/traefik-api-key-auth
+import: github.com/rinokadijk/traefik-permissive-api-key-auth
 
-summary: "Authorise API requests with an API Key"
+summary: "Get API Key from requests and authorise if not in permissive mode"
 
 testData:
-  authenticationHeader: true
+  authenticationHeader: false
   authenticationheaderName: X-API-KEY
   bearerHeader: true
   bearerHeaderName: Authorization
-  removeHeadersOnSuccess: true
-  queryParam: true
+  removeHeadersOnSuccess: false
+  queryParam: false
   queryParamName: token
-  pathSegment: true
-  keys:
-    - 83AB3503-50AA-4B57-9386-B9F0BADF2013
+  pathSegment: false
+  permissiveMode: true
