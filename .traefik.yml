@@ -1,4 +1,4 @@
-﻿displayName: API Key Auth
+﻿displayName: Permissive API Key Auth
 type: middleware
 
 import: github.com/rinokadijk/traefik-permissive-api-key-auth
