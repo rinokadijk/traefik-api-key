@@ -1,6 +1,6 @@
-# api-key-auth
+# api-key
 
-This plugin allows you to protect routes with an API key specified in a header, query string param or path segment. If the user does not provide a valid key the middleware will return a 403 (unless in permissive mode).
+This plugin allows you to get an API token from a header, query string param or path segment. If keys are provided the plugin can authenticate users. The middleware will return a 403 (unless in permissive mode).
 
 ## Config
 
@@ -14,16 +14,16 @@ Add to your Traefik static configuration
 experimental:
   plugins:
     traefik-api-key-auth:
-      moduleName: "github.com/rinokadijk/traefik-permissive-api-key-auth"
-      version: "v0.0.4"
+      moduleName: "github.com/rinokadijk/traefik-api-key"
+      version: "v0.0.1"
 ```
 
 #### toml
 
 ```toml
 [experimental.plugins.traefik-api-key-auth]
-  moduleName = "github.com/rinokadijk/traefik-permissive-api-key-auth"
-  version = "v0.0.4"
+  moduleName = "github.com/rinokadijk/traefik-api-key"
+  version = "v0.0.1"
 ```
 
 ### CLI
@@ -31,8 +31,8 @@ experimental:
 Add to your startup args:
 
 ```sh
---experimental.plugins.traefik-api-key-auth.modulename=github.com/rinokadijk/traefik-permissive-api-key-auth
---experimental.plugins.traefik-api-key-auth.version=v0.0.4
+--experimental.plugins.traefik-api-key-auth.modulename=github.com/rinokadijk/traefik-api-key
+--experimental.plugins.traefik-api-key-auth.version=v0.0.1
 ```
 
 ### K8s CRD

@@ -1,7 +1,7 @@
-﻿displayName: Permissive API Key Auth
+﻿displayName: Request API Key
 type: middleware
 
-import: github.com/rinokadijk/traefik-permissive-api-key-auth
+import: github.com/rinokadijk/traefik-api-key
 
 summary: "Get API Key from requests and authorise if not in permissive mode"
 
