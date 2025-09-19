@@ -1,4 +1,4 @@
-package traefik_api_key_auth
+package traefik_api_key
 
 import (
 	"context"
@@ -39,7 +39,7 @@ func CreateConfig() *Config {
 		QueryParam:                true,
 		QueryParamName:            "token",
 		PathSegment:               true,
-		PermissiveMode:            false,
+		PermissiveMode:            true,
 		Keys:                      make([]string, 0),
 		RemoveHeadersOnSuccess:    true,
 		InternalForwardHeaderName: "",
