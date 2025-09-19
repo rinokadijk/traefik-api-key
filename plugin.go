@@ -67,7 +67,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	fmt.Printf("Creating plugin: %s instance: %+v, ctx: %+v\n", name, *config, ctx)
 
 	// check for empty keys
-	if len(config.Keys) == 0 {
+	if len(config.Keys) == 0 && !config.PermissiveMode {
 		return nil, fmt.Errorf("must specify at least one valid key")
 	}
 
