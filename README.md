@@ -16,7 +16,7 @@ experimental:
   plugins:
     traefik-api-key-auth:
       moduleName: "github.com/rinokadijk/traefik-api-key"
-      version: "v0.0.2"
+      version: "v0.0.5"
 ```
 
 #### toml
@@ -24,7 +24,7 @@ experimental:
 ```toml
 [experimental.plugins.traefik-api-key-auth]
   moduleName = "github.com/rinokadijk/traefik-api-key"
-  version = "v0.0.2"
+  version = "v0.0.5"
 ```
 
 ### CLI
@@ -33,7 +33,7 @@ Add to your startup args:
 
 ```sh
 --experimental.plugins.traefik-api-key-auth.modulename=github.com/rinokadijk/traefik-api-key
---experimental.plugins.traefik-api-key-auth.version=v0.0.2
+--experimental.plugins.traefik-api-key-auth.version=v0.0.5
 ```
 
 ### K8s CRD
